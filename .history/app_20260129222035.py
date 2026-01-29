@@ -28,7 +28,7 @@ def init_db():
             phone TEXT,
             subject TEXT,
             message TEXT NOT NULL,
-            submitted_at TIMESTAMP DEFAULT (datetime('now', '+5 hours', '+30 minutes'))
+            submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     conn.commit()

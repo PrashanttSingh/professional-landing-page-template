@@ -28,7 +28,7 @@ def init_db():
             phone TEXT,
             subject TEXT,
             message TEXT NOT NULL,
-            submitted_at TIMESTAMP DEFAULT (datetime('now', '+5 hours', '+30 minutes'))
+            submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     conn.commit()
@@ -99,7 +99,7 @@ def send_email_notification(name, email, phone, subject, message):
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 View all messages in admin panel:
-http://127.0.0.1:5000/admin/messages
+[http://127.0.0.1:5000/admin/messages](http://127.0.0.1:5000/admin/messages)
         """
         
         msg.attach(MIMEText(body, 'plain'))
@@ -177,13 +177,6 @@ def admin_messages():
     messages = cursor.fetchall()
     conn.close()
     return render_template('admin.html', messages=messages)
-
-
-# Admin logout route
-@app.route('/admin/logout')
-def admin_logout():
-    session.pop('logged_in', None)
-    return redirect(url_for('admin_login'))
 
 
 if __name__ == '__main__':

@@ -5,16 +5,13 @@ import os
 from dotenv import load_dotenv 
 import smtplib
 from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-
+from email.mime.multipart import MIMEMultipart # ADD THIS
 
 # Load environment variables
-load_dotenv()
-
+load_dotenv()  # ADD THIS
 
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'your-default-secret-key')
-
+app.secret_key = os.getenv('SECRET_KEY', 'your-default-secret-key')  # ADD THIS
 
 # Create database
 def init_db():
@@ -25,18 +22,14 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             email TEXT NOT NULL,
-            phone TEXT,
-            subject TEXT,
             message TEXT NOT NULL,
-            submitted_at TIMESTAMP DEFAULT (datetime('now', '+5 hours', '+30 minutes'))
+            submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     conn.commit()
     conn.close()
 
-
 init_db()
-
 
 # Admin login decorator
 def login_required(f):
@@ -47,7 +40,6 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-
 # Admin login page
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -55,9 +47,11 @@ def admin_login():
         username = request.form.get('username')
         password = request.form.get('password')
         
+        # THIS IS WHERE STEP 3 GOES! ⬇️⬇️⬇️
         if username == os.getenv('ADMIN_USERNAME') and password == os.getenv('ADMIN_PASSWORD'):
             session['logged_in'] = True
             return redirect(url_for('admin_messages'))
+        # ⬆️⬆️⬆️ STEP 3 CODE HERE
         
         return 'Invalid credentials'
     
@@ -69,10 +63,8 @@ def admin_login():
             <button type="submit" style="width:100%;padding:10px;background:#4F46E5;color:white;border:none;border-radius:5px;cursor:pointer;font-size:16px;">Login</button>
         </form>
     '''
-
-
 # Email notification function
-def send_email_notification(name, email, phone, subject, message):
+def send_email_notification(name, email, message):
     try:
         sender_email = os.getenv('MAIL_USERNAME')
         sender_password = os.getenv('MAIL_PASSWORD')
@@ -88,14 +80,10 @@ def send_email_notification(name, email, phone, subject, message):
 📬 NEW CONTACT FORM SUBMISSION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-
 👤 Name: {name}
 📧 Email: {email}
-📱 Phone: {phone if phone else 'Not provided'}
-📋 Subject: {subject if subject else 'Not provided'}
 💬 Message: 
 {message}
-
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 View all messages in admin panel:
@@ -117,55 +105,27 @@ http://127.0.0.1:5000/admin/messages
 
 
 # Home route
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
-
 # Form submission
-@app.route('/api/contact', methods=['POST'])
+@app.route('/submit', methods=['POST'])
 def submit():
-    try:
-        data = request.get_json()
-        
-        # Debug: Print what we received
-        print(f"📥 Received data: {data}")
-        
-        name = data.get('name', '')
-        email = data.get('email', '')
-        phone = data.get('phone', '')
-        subject = data.get('subject', '')
-        message = data.get('message', '')
-        
-        # Debug: Print extracted values
-        print(f"📝 Name: '{name}', Email: '{email}', Phone: '{phone}', Subject: '{subject}', Message: '{message}'")
-        
-        # Validate required fields
-        if not name or not email or not message:
-            error_msg = f'Missing fields - Name: {bool(name)}, Email: {bool(email)}, Message: {bool(message)}'
-            print(f"❌ Validation failed: {error_msg}")
-            return jsonify({'success': False, 'message': error_msg}), 400
-        
-        # Save to database
-        conn = sqlite3.connect('contacts.db')
-        cursor = conn.cursor()
-        cursor.execute('INSERT INTO contacts (name, email, phone, subject, message) VALUES (?, ?, ?, ?, ?)',
-                       (name, email, phone, subject, message))
-        conn.commit()
-        conn.close()
-        
-        print("✅ Saved to database successfully!")
-        
-        # Send email notification
-        send_email_notification(name, email, phone, subject, message)
-        
-        return jsonify({'success': True, 'message': 'Message sent successfully!'})
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({'success': False, 'message': f'Failed to send message: {str(e)}'}), 500
-
+    data = request.get_json()
+    name = data.get('name')
+    email = data.get('email')
+    message = data.get('message')
+    
+    conn = sqlite3.connect('contacts.db')
+    cursor = conn.cursor()
+    cursor.execute('INSERT INTO contacts (name, email, message) VALUES (?, ?, ?)',
+                   (name, email, message))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True})
 
 # Protected admin route
 @app.route('/admin/messages')
@@ -176,15 +136,10 @@ def admin_messages():
     cursor.execute('SELECT * FROM contacts ORDER BY id DESC')
     messages = cursor.fetchall()
     conn.close()
+# Send email notification
+    send_email_notification(name, email, message)
+
     return render_template('admin.html', messages=messages)
-
-
-# Admin logout route
-@app.route('/admin/logout')
-def admin_logout():
-    session.pop('logged_in', None)
-    return redirect(url_for('admin_login'))
-
 
 if __name__ == '__main__':
     app.run(debug=True)
