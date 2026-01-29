@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Contact Messages</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #4F46E5;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .message-card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #4F46E5;
+            padding-bottom: 10px;
+        }
+        .message-info {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .label {
+            font-weight: 600;
+            color: #333;
+        }
+        .value {
+            color: #666;
+        }
+        .message-content {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        .timestamp {
+            color: #999;
+            font-size: 0.9em;
+        }
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #4F46E5;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .back-btn:hover {
+            background: #4338CA;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-btn">← Back to Site</a>
+        <h1>📧 Contact Form Submissions</h1>
+
+        {% if messages %}
+            {% for msg in messages %}
+            <div class="message-card">
+                <div class="message-header">
+                    <h3>Message #{{ msg[0] }}</h3>
+                    <span class="timestamp">{{ msg[6] }}</span>
+                </div>
+                <div class="message-info">
+                    <span class="label">Name:</span>
+                    <span class="value">{{ msg[1] }}</span>
+
+                    <span class="label">Email:</span>
+                    <span class="value">{{ msg[2] }}</span>
+
+                    <span class="label">Phone:</span>
+                    <span class="value">{{ msg[3] or 'N/A' }}</span>
+
+                    <span class="label">Subject:</span>
+                    <span class="value">{{ msg[4] }}</span>
+                </div>
+                <div class="message-content">
+                    <strong>Message:</strong><br>
+                    {{ msg[5] }}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="message-card">
+                <p style="text-align: center; color: #999;">No messages yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
